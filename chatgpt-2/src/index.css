@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#root {
+  flex: 1;
+  display: flex;
+}
+
+body {
+  display: flex;
+  max-width: 100vw;
+  min-width: 100vw;
+  max-height: 100vh;
+  min-height: 100vh;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
+}
