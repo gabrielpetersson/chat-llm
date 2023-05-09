@@ -16,8 +16,8 @@ export default {
         },
         "dark-gray": {
           DEFAULT: "#1e293b",
-          hovered: "#2e394b",
-          active: "#334155",
+          hovered: "#223242",
+          active: "#293949",
         },
         red: {
           DEFAULT: "#eb5757",
@@ -35,5 +35,8 @@ export default {
       },
     },
   },
+  // corePlugins: {
+  //   preflight: false,
+  // },
   plugins: [],
 };

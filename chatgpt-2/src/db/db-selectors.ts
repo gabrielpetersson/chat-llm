@@ -5,6 +5,12 @@ export const dbSelectConversations = (): PromiseExtended<Conversation[]> => {
   return database.conversations.reverse().toArray();
 };
 
+export const dbSelectFirstConversation = (): PromiseExtended<
+  Conversation | undefined
+> => {
+  return database.conversations.reverse().first();
+};
+
 export const dbSelectMessages = (
   conversationId: number
 ): PromiseExtended<Message[]> => {

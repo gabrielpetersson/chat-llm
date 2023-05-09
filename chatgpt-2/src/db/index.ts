@@ -35,8 +35,17 @@ const setMessageContent = async (messageId: number, content: string) => {
   return await database.messages
     .where("id")
     .equals(messageId)
-    .modify((message: Message) => {
+    .modify((message) => {
       message.content = content;
+    });
+};
+
+const setConversationTitle = async (conversationId: number, title: string) => {
+  return await database.conversations
+    .where("id")
+    .equals(conversationId)
+    .modify((conversation) => {
+      conversation.title = title;
     });
 };
 
@@ -62,13 +71,12 @@ const addConversation = async () => {
   return await database.conversations.add(conversation as Conversation);
 };
 
-const setConversationTitle = async (conversationId: number, title: string) => {
-  return await database.conversations
-    .where("id")
+const deleteConversation = async (conversationId: number) => {
+  await database.conversations.where("id").equals(conversationId).delete();
+  await database.messages
+    .where("conversationId")
     .equals(conversationId)
-    .modify((conversation: Conversation) => {
-      conversation.title = title;
-    });
+    .delete();
 };
 
 export const db = {
@@ -76,4 +84,5 @@ export const db = {
   addMessage,
   setMessageContent,
   setConversationTitle,
+  deleteConversation,
 };
