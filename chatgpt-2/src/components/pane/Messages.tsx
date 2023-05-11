@@ -1,11 +1,12 @@
 import clsx from "clsx";
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useLayoutEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { vs } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { Message } from "../../db";
 import { CodeLang } from "../../state/panes";
 import "./github-markdown.css";
+import { usePrevious } from "../hooks/usePrevious";
 
 interface MessageItemProps {
   message: Message;
@@ -75,26 +76,51 @@ export const MessageList: FC<ChatMessagesProps> = ({
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const containers = ref.current;
-    if (containers == null) {
+  const prevScrollHeight = usePrevious(ref.current?.scrollHeight);
+  const prevMessagesLength = usePrevious(messages.length) ?? 0;
+
+  useLayoutEffect(() => {
+    const container = ref.current;
+    if (container == null || prevScrollHeight == null) {
       return;
     }
+    const isNewMessage = messages.length > prevMessagesLength;
+    const scrollHeightChanged = prevScrollHeight !== ref.current?.scrollHeight;
 
-    containers.scrollTop = containers.scrollHeight;
-  }, [messages]);
+    const isAtBottom =
+      prevScrollHeight - container.clientHeight - container.scrollTop < 40;
+    if (isAtBottom && (isNewMessage || scrollHeightChanged)) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages, prevMessagesLength, prevScrollHeight]);
 
+  const isScrollable = (() => {
+    if (ref.current == null) {
+      return false;
+    }
+    return ref.current.scrollHeight - ref.current.clientHeight > 0;
+  })();
   const codeLang = "javascript";
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto" ref={ref}>
-      {messages.map((messages) => (
-        <MessageItem
-          key={messages.id}
-          message={messages}
-          codeLang={codeLang}
-          isActivePane={isActivePane}
-        />
-      ))}
+      {messages.map((message, i) => {
+        const msg = (
+          <MessageItem
+            key={message.id}
+            message={message}
+            codeLang={codeLang}
+            isActivePane={isActivePane}
+          />
+        );
+
+        return isScrollable && i === messages.length - 1 ? (
+          <div key={message.id} className="min-h-[200px]">
+            {msg}
+          </div>
+        ) : (
+          msg
+        );
+      })}
     </div>
   );
 };

@@ -1,9 +1,15 @@
 import { MessageRole } from "../db";
 
+const OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
+
 type OpenAIMessage = { role: MessageRole; content: string };
 export const openaiQuery = async (
   messages: OpenAIMessage[],
-  options?: { maxTokens?: number }
+  options: { maxTokens?: number; model?: string; temprature?: number } = {
+    maxTokens: 1000,
+    model: "gpt-3.5-turbo",
+    temprature: 0,
+  }
 ) => {
   const requestOptions = {
     method: "POST",
@@ -13,19 +19,17 @@ export const openaiQuery = async (
     },
     body: JSON.stringify({
       messages,
-      temperature: 0.5,
-      max_tokens: options?.maxTokens ?? 1000,
-      top_p: 1,
+      temperature: options.temprature,
+      model: options.model,
+      max_tokens: options.maxTokens,
+      top_p: 0.5,
       frequency_penalty: 0,
-      presence_penalty: 0.5,
-      model: "gpt-3.5-turbo",
+      presence_penalty: 0,
     }),
   };
-  const response = await fetch(
-    "https://api.openai.com/v1/chat/completions",
-    requestOptions
-  );
+  const response = await fetch(OPENAI_ENDPOINT, requestOptions);
   if (response.status > 299 || response.status < 200) {
+    console.error(response, "not readable");
     window.alert("Error calling open ai. Try re-entering your key.");
     throw new Error("OpenAI API error");
   }
@@ -37,7 +41,11 @@ export const openaiQuery = async (
 export const openaiQueryStream = async (
   messages: OpenAIMessage[],
   onDelta: (delta: string) => void,
-  options?: { maxTokens?: number }
+  {
+    maxTokens = 1000,
+    model = "gpt-3.5-turbo",
+    temprature = 0,
+  }: { maxTokens?: number; model?: string; temprature?: number } = {}
 ) => {
   const controller = new AbortController();
   const requestOptions = {
@@ -48,20 +56,23 @@ export const openaiQueryStream = async (
     },
     body: JSON.stringify({
       messages,
-      temperature: 0.3,
-      model: "gpt-3.5-turbo",
-      max_tokens: options?.maxTokens ?? 1000,
+      temperature: temprature,
+      model: model,
+      max_tokens: maxTokens,
+      top_p: 0.5,
+      frequency_penalty: 0,
+      presence_penalty: 0,
       stream: true,
     }),
     signal: controller.signal,
   };
-  const response = await fetch(
-    "https://api.openai.com/v1/chat/completions",
-    requestOptions
-  );
+  const response = await fetch(OPENAI_ENDPOINT, requestOptions);
   if (response.status > 299 || response.status < 200) {
+    console.error(response);
     window.alert("Error calling open ai. Try re-entering your key.");
-    throw new Error("OpenAI API error");
+    throw new Error(
+      `OpenAI API error - ${response.status}: ${response.statusText}`
+    );
   }
 
   const reader = response.body?.getReader();

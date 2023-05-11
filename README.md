@@ -1,1 +1,1 @@
-cdchatgpt but with features
+chatgpt but with features

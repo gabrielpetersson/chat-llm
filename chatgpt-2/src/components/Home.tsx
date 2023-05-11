@@ -1,48 +1,50 @@
 import { useEffect } from "react";
-import { Panes } from "./Chat/Panes";
-import { ConversationList } from "./Conversations";
+import { Panes } from "./pane/Panes";
+import { ConversationList } from "./conversations/Conversations";
 import { dbSelectFirstConversation } from "../db/db-selectors";
 import { useAppDispatch } from "../state/store";
 import { openConversation } from "../state/conversations";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-
-const OpenAIKeyInput = () => {
-  const [storedKey, setStoredKey] = useLocalStorage("openai-key", "");
-
-  return (
-    <div className="flex h-[70px] cursor-pointer items-center justify-center">
-      <input
-        value={storedKey}
-        type={"password"}
-        onChange={(e) => setStoredKey(e.target.value)}
-        placeholder="Enter your key"
-        className="dark:dark-gray h-[40px] w-full max-w-[300px] rounded-md border border-black/10 border-orange-900 bg-white px-2 shadow-[0_0_10px_rgba(0,0,0,0.10)] outline-none dark:border-gray-900/50 dark:text-white dark:shadow-[0_0_15px_rgba(0,0,0,0.10)]"
-      />
-    </div>
-  );
-};
+import { Presets } from "./preset/Preset";
+import { OpenAIKeyInput } from "./OpenAIKey";
 
 export const Home = () => {
+  const [storedKey, setStoredKey] = useLocalStorage("openai-key", "");
   const dispatch = useAppDispatch();
+
   useEffect(() => {
     (async () => {
       const conversation = await dbSelectFirstConversation();
-      if (conversation) {
-        dispatch(openConversation(conversation.id));
+      if (conversation != null) {
+        dispatch(openConversation(conversation.id, { openInNewPane: true }));
       }
     })();
   }, [dispatch]);
   return (
     <main className={`flex flex-1`}>
-      <div className="grid flex-1 grid-cols-[minmax(200px,350px)_minmax(500px,1fr)] grid-rows-[1fr]">
-        <div className="flex flex-col bg-dark-gray p-3">
+      <div className="grid flex-1 grid-cols-[minmax(200px,300px)_minmax(500px,1fr)] grid-rows-[1fr]">
+        <div className="flex min-h-0 flex-col bg-dark-gray p-[8px]">
+          <Presets />
+          <div className={"shrink-0 py-1 text-[12px] text-white opacity-50"}>
+            {"Hold ⌘ to open chat in new pane"}
+          </div>
+          <hr className="border-t-gray-500" />
           <ConversationList />
-          <OpenAIKeyInput />
+          <a
+            href="https://platform.openai.com/account/api-keys"
+            target="_blank"
+            className="my-2 text-white underline hover:text-gray-200"
+          >
+            Click to get api key
+          </a>
+          <OpenAIKeyInput value={storedKey} onChange={setStoredKey} />
         </div>
         <div className="flex min-h-0 bg-white">
           <Panes />
         </div>
-        {/* <div className="flex bg-dark-gray"><p>{keyT}</p></div> */}
+        {/* <div className="flex min-h-0 flex-col bg-dark-gray p-3">
+          <Presets />
+        </div> */}
       </div>
     </main>
   );

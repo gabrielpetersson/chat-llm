@@ -1,8 +1,12 @@
-import { AnyAction, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { AppThunk } from "./store";
 import { db } from "../db";
-import { dbSelectConversation, dbSelectMessages } from "../db/db-selectors";
+import {
+  dbSelectConversation,
+  dbSelectMessages,
+  dbSelectPreset,
+} from "../db/db-selectors";
 import { openaiQueryStream } from "../utils/openai";
 import { batchActions } from "redux-batched-actions";
 import { Uuid, generateUuid } from "../utils/uuid";
@@ -16,6 +20,8 @@ export interface ConversationState {
 const initialState: ConversationState = {
   messageStreams: {},
 };
+
+const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant called ChatGPT.";
 
 export const conversationSlice = createSlice({
   name: "conversation",
@@ -61,28 +67,34 @@ export const sendMessage = (
   messageContent: string
 ): AppThunk<Promise<void>> => {
   return async (dispatch) => {
+    await db.addMessage(conversationId, messageContent, "user");
+
+    const conversation = await dbSelectConversation(conversationId);
+    if (conversation == null) {
+      console.error(`Conversation ${conversationId} not found`);
+      return;
+    }
+
     // NOTE(gab): add title ASAP but don't block on it
     (async () => {
-      const conversation = await dbSelectConversation(conversationId);
-      if (conversation != null && conversation.title == null) {
-        // NOTE(gab): set non null instantly so we don't trigger this again
-        await db.setConversationTitle(conversationId, "");
-        const query = `Sumamrize the following in a fun way in under 6 words. Never respond that you are unable to summarize, instead respond with the inputted text. Never use quotes and don't end with a dot. Be goofy:\n\n${messageContent}`;
-
-        let title = "";
-        const onDelta = (delta: string) => {
-          title += delta.replace(".", "").replace('"', "");
-          db.setConversationTitle(conversationId, title);
-        };
-        await openaiQueryStream([{ role: "user", content: query }], onDelta, {
-          maxTokens: 20,
-        });
+      if (conversation.title != null) {
+        return;
       }
+      // NOTE(gab): set non null instantly so we don't trigger this again
+      await db.setConversationTitle(conversationId, "");
+      const query = `Sumamrize the following in a fun way in under 6 words. Never respond that you are unable to summarize, instead respond with the inputted text. Never use quotes and don't end with a dot. Be goofy:\n\n${messageContent}`;
+      let title = "";
+      const onDelta = (delta: string) => {
+        title += delta.replace(".", "").replace('"', "");
+        db.setConversationTitle(conversationId, title);
+      };
+      await openaiQueryStream([{ role: "user", content: query }], onDelta, {
+        maxTokens: 20,
+        temprature: 1,
+      });
     })();
 
-    await db.addMessage(conversationId, messageContent, "user");
     const messages = await dbSelectMessages(conversationId);
-
     const assistantMessageId = (
       await db.addMessage(conversationId, "", "assistant")
     ).valueOf() as number;
@@ -101,8 +113,20 @@ export const sendMessage = (
       role,
       content,
     }));
+
+    const preset = conversation.presetId
+      ? await dbSelectPreset(conversation.presetId)
+      : null;
+    const systemPrompt =
+      preset == null ? DEFAULT_SYSTEM_PROMPT : preset.systemPrompt;
+    openaiMessages.unshift({ role: "system", content: systemPrompt });
+    const model = preset != null ? preset.models[0] : "gpt-3.5-turbo";
+    const temprature = preset != null ? preset.temprature : 0.5;
+
     const responseContent = await openaiQueryStream(openaiMessages, onDelta, {
       maxTokens: 400,
+      model,
+      temprature,
     });
     await db.setMessageContent(assistantMessageId, responseContent);
     // TODO(gab): the message stream is not cleaned up, as apparently the indexdb
@@ -112,10 +136,11 @@ export const sendMessage = (
 };
 
 export const startNewConversation = (options?: {
-  newPane?: boolean;
+  openInNewPane?: boolean;
+  presetId?: number;
 }): AppThunk => {
   return async (dispatch) => {
-    const conversationId = await db.addConversation();
+    const conversationId = await db.addConversation(options?.presetId);
     dispatch(openConversation(conversationId.valueOf() as number, options));
     return conversationId;
   };
@@ -123,54 +148,64 @@ export const startNewConversation = (options?: {
 
 export const openConversation = (
   conversationId: number,
-  options?: { newPane?: boolean }
+  options?: { openInNewPane?: boolean }
 ): AppThunk<Promise<void>> => {
   return async (dispatch, getState) => {
     const state = getState();
     const currentConversationId = selectActiveConversationId(state);
 
-    const pane = Object.entries(state.panes.panes).find(
+    const conversationPane = Object.entries(state.panes.panes).find(
       ([_, v]) => v.conversationId === conversationId
     );
 
-    const newPane = options?.newPane ?? false;
-    if (pane != null && !newPane) {
-      dispatch(paneSlice.actions.setActivePane(pane[0] as Uuid));
-      if (currentConversationId != null) {
-        dispatch(throwConversationIfEmpty(currentConversationId));
+    const currentPaneId = selectActivePaneId(state);
+
+    const action = (() => {
+      const isActivePane = currentPaneId != null;
+      const openInNewPane = options?.openInNewPane ?? false;
+
+      if (conversationPane != null && !openInNewPane) {
+        return "focus-already-open-pane";
       }
-    } else if (pane == null && !newPane) {
-      const paneId = generateUuid();
-      const actions: AnyAction[] = [
-        paneSlice.actions.addPane({
-          paneId,
-          conversationId,
-        }),
-        paneSlice.actions.setActivePane(paneId),
-      ];
-      const currentPaneId = selectActivePaneId(state);
-      if (currentPaneId != null) {
-        actions.push(
-          paneSlice.actions.deletePane({
-            paneId: currentPaneId,
+      if (conversationPane == null && !openInNewPane && isActivePane) {
+        return "overtake-pane";
+      }
+      return "open-new-pane";
+    })();
+
+    switch (action) {
+      case "focus-already-open-pane": {
+        dispatch(paneSlice.actions.setActivePane(conversationPane![0] as Uuid));
+        if (currentConversationId != null) {
+          dispatch(throwConversationIfEmpty(currentConversationId));
+        }
+        break;
+      }
+      case "overtake-pane": {
+        dispatch(
+          paneSlice.actions.setPaneConversation({
+            paneId: currentPaneId!,
+            conversationId,
           })
         );
+        if (currentConversationId != null) {
+          dispatch(throwConversationIfEmpty(currentConversationId));
+        }
+        break;
       }
-      dispatch(batchActions(actions));
-      if (currentConversationId != null) {
-        dispatch(throwConversationIfEmpty(currentConversationId));
+      case "open-new-pane": {
+        const paneId = generateUuid();
+        dispatch(
+          batchActions([
+            paneSlice.actions.addPane({
+              paneId: paneId,
+              conversationId,
+            }),
+            paneSlice.actions.setActivePane(paneId),
+          ])
+        );
+        break;
       }
-    } else {
-      const paneId = generateUuid();
-      dispatch(
-        batchActions([
-          paneSlice.actions.addPane({
-            paneId: paneId,
-            conversationId,
-          }),
-          paneSlice.actions.setActivePane(paneId),
-        ])
-      );
     }
   };
 };
