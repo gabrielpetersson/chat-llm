@@ -1,6 +1,5 @@
 import {
   FC,
-  FC,
   KeyboardEventHandler,
   MouseEventHandler,
   useEffect,

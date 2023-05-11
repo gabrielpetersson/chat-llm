@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { FC, useEffect, useLayoutEffect, useRef } from "react";
+import { FC, useLayoutEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { vs } from "react-syntax-highlighter/dist/esm/styles/hljs";
