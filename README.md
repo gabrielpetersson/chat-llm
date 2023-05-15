@@ -13,10 +13,11 @@ https://chatgpt-2-lac.vercel.app/
 
 ### TODO
 1. Remove/edit chats
-2. Click on any message to create a new conversation in a new pane, copying previous messages
-3. Expandable textarea for the message input
-4. Make opening in new pane work for shortcuts (i.e. alt+command+SHORTCUT)
-5. Make the chat panes look good, while still clearly separating multiple panes
+2. Make messages that are out of context red
+3. Click a message to fork the conversation into a new conversation in another pane
+4. Expandable textarea for the message input
+5. Make opening in new pane work for shortcuts (i.e. alt+command+SHORTCUT)
+6. Query GPT4, Claude, and serpapi at the same time and show them side by side (opt-in ofc)
 
 
 
