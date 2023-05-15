@@ -1,4 +1,4 @@
-# Chat powered by Open AI - [Try it](https://chatgpt-2-lac.vercel.app/)
+# Chat LLM (better chatgpt) - [Try it](https://chatgpt-2-lac.vercel.app/)
 1. Create _chat configs_ with system prompts and temperature, open a new chat with a config in one click
 3. Hold command while clicking to open chat in a new pane
 4. Ask multiple questions at the same time, in the same or in different chats
