@@ -1,7 +1,8 @@
 # Chat LLM (better chatgpt) - [Try it](https://chatgpt-2-lac.vercel.app/)
-1. Create _chat configs_ with system prompts and temperature, open a new chat with a config in one click
-3. Hold command while clicking to open chat in a new pane
-4. Ask multiple questions at the same time, in the same or in different chats
+1. Create _chat configs_ with system prompts, open in one click
+2. 100% local. Your key is stored in LocalStorage and all data inside IndexedDB in your browser.
+3. Hold command to open chat in a new pane
+4. Ask multiple questions at the same time, in the same or in different panes
 5. Use shortcuts to open any chat config
 <img width="1710" alt="image" src="https://github.com/gabrielpetersson/chatgpt-2/assets/46445785/ab433b7f-48a5-4b6f-8470-89dff00ee77e">
 
@@ -12,12 +13,13 @@ https://chatgpt-2-lac.vercel.app/
 3. It has only mission critical UI - there are no message bubbles or message icons taking up space, and there is no need for a send button, we all use enter, and so on. 
 
 ### TODO
-1. Remove/edit chats
-2. Make messages that are out of context red
-3. Click a message to fork the conversation into a new conversation in another pane
-4. Expandable textarea for the message input
+1. Expandable textarea for the message input
+2. Remove/edit chats
+3. Make messages that are out of context red
+4. Fork out from a message into a new conversation in another pane
 5. Make opening in new pane work for shortcuts (i.e. alt+command+SHORTCUT)
-6. Query GPT4, Claude, and serpapi at the same time and show them side by side (opt-in ofc)
+6. Commands inside textarea (/newpane What is x?)
+7. Query GPT4, Claude, and serpapi at the same time and show them side by side (opt-in)
 
 
 
