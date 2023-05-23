@@ -3,6 +3,7 @@ import {
   KeyboardEventHandler,
   MouseEventHandler,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -103,7 +104,13 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
             </span>
           </div>
         </div>
-        <MessageList messages={messages} isActivePane={isActivePane} />
+        {/* TODO: remove memo by fixing dexies weird memoization & move input to own component */}
+        {useMemo(
+          () => (
+            <MessageList messages={messages} isActivePane={isActivePane} />
+          ),
+          [isActivePane, messages]
+        )}
         <div className="flex h-[70px] items-center justify-center px-6">
           <input
             ref={inputRef}
