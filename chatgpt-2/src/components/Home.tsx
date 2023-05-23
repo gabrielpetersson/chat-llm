@@ -13,6 +13,7 @@ export const Home = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    // NOTE(gab): opens the latest conversation on load
     (async () => {
       const conversation = await dbSelectFirstConversation();
       if (conversation != null) {
@@ -25,7 +26,7 @@ export const Home = () => {
       <div className="grid flex-1 grid-cols-[minmax(200px,300px)_minmax(500px,1fr)] grid-rows-[1fr]">
         <div className="flex min-h-0 flex-col bg-dark-gray p-[8px]">
           <Presets />
-          <div className={"shrink-0 py-1 text-[12px] text-white opacity-50"}>
+          <div className="shrink-0 truncate py-1 text-[12px] text-white opacity-50">
             {"Hold ⌘ to open chat in new pane"}
           </div>
           <hr className="border-t-gray-500" />
@@ -42,9 +43,6 @@ export const Home = () => {
         <div className="flex min-h-0 bg-white">
           <Panes />
         </div>
-        {/* <div className="flex min-h-0 flex-col bg-dark-gray p-3">
-          <Presets />
-        </div> */}
       </div>
     </main>
   );

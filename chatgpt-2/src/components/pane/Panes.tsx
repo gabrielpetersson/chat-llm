@@ -82,12 +82,8 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
             isActivePane ? "border-gray-300 bg-gray-100" : "border-transparent"
           )}
         >
-          <div className={"flex-1"}>
-            <div
-              className={clsx(
-                "min-w-0 flex-1 truncate text-[20px] font-medium"
-              )}
-            >
+          <div className="min-w-0 flex-1">
+            <div className={clsx("flex-1 truncate text-[20px] font-medium")}>
               {conversation?.title == null || conversation.title === ""
                 ? "New conversation"
                 : conversation.title}
@@ -116,7 +112,7 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
             onChange={(e) => setMessageDraft(e.target.value)}
             onKeyDown={onKeydown}
             placeholder="Tell me something..."
-            className="text-input w-full max-w-[300px] shadow-[0_0_10px_rgba(0,0,0,0.10)] outline-none"
+            className="text-input w-full max-w-[500px] shadow-[0_0_10px_rgba(0,0,0,0.10)] outline-none"
           />
         </div>
       </div>
@@ -126,10 +122,43 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
 
 export const Panes: FC = () => {
   const panes = useAppSelector(selectPanes);
+  const paneEntries = Object.entries(panes);
+  if (paneEntries.length === 0) {
+    return (
+      <div
+        className={clsx(
+          "flex min-w-[400px] flex-1 border-[8px] border-l-0 border-dark-gray bg-dark-gray"
+        )}
+      >
+        <div className="flex flex-1 flex-col items-center rounded bg-white p-24 px-10">
+          <div className="text-2xl">Welcome to Chat LLM</div>
+          <div className="mb-6 text-center">
+            All your data is 100% local, and ChatGPT calls are made from the
+            browser
+          </div>
+          <div>This is an open sourced project, contributions welcome</div>
+          <a
+            href="https://github.com/gabrielpetersson/chat-llm"
+            className="mb-6 text-blue-600 underline"
+          >
+            https://github.com/gabrielpetersson/chat-llm
+          </a>
 
+          <div className="text-center">Click here to find your api key</div>
+          <a
+            href="https://platform.openai.com/account/api-keys"
+            target="_blank"
+            className="text-blue-600 underline"
+          >
+            https://platform.openai.com/account/api-keys
+          </a>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-1 overflow-x-auto">
-      {Object.entries(panes).map(([paneId, pane]) => {
+      {paneEntries.map(([paneId, pane]) => {
         return <Pane key={paneId} paneId={paneId as Uuid} pane={pane} />;
       })}
     </div>
@@ -144,9 +173,9 @@ const ChoosePreset: FC<ChoosePresetProps> = ({ conversation }) => {
   const currentPreset = presets?.find((p) => p.id === conversation.presetId);
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
+      <DropdownMenu.Trigger asChild tabIndex={-1}>
         <button className="mt-[-8px] flex items-center text-[11px] font-thin text-gray-500 outline-none">
-          {`Preset: ${currentPreset?.title ?? "Default"}`}
+          {`Chat config: ${currentPreset?.title ?? "Default"}`}
           <span className="material-symbols-outlined pt-1 text-[16px]">
             expand_more
           </span>

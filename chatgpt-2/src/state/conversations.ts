@@ -108,23 +108,25 @@ export const sendMessage = (
         })
       );
     };
-
-    const openaiMessages = messages.map(({ role, content }) => ({
-      role,
-      content,
-    }));
-
     const preset = conversation.presetId
       ? await dbSelectPreset(conversation.presetId)
       : null;
     const systemPrompt =
       preset == null ? DEFAULT_SYSTEM_PROMPT : preset.systemPrompt;
+
+    const openaiMessages = messages
+      .map(({ role, content }) => ({
+        role,
+        content,
+      }))
+      .slice(-10); // TODO: check actual num of tokens
     openaiMessages.unshift({ role: "system", content: systemPrompt });
+
     const model = preset != null ? preset.models[0] : "gpt-3.5-turbo";
     const temprature = preset != null ? preset.temprature : 0.5;
 
     const responseContent = await openaiQueryStream(openaiMessages, onDelta, {
-      maxTokens: 400,
+      maxTokens: 1000,
       model,
       temprature,
     });
