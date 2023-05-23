@@ -130,8 +130,8 @@ export const Panes: FC = () => {
           "flex min-w-[400px] flex-1 border-[8px] border-l-0 border-dark-gray bg-dark-gray"
         )}
       >
-        <div className="flex flex-1 flex-col items-center rounded bg-white p-24 px-10">
-          <div className="text-2xl">Welcome to Chat LLM</div>
+        <div className="flex flex-1 flex-col items-center rounded bg-white p-40 px-10">
+          <div className="text-2xl font-bold">Welcome to Chat LLM</div>
           <div className="mb-6 text-center">
             All your data is 100% local, and ChatGPT calls are made from the
             browser
@@ -143,15 +143,17 @@ export const Panes: FC = () => {
           >
             https://github.com/gabrielpetersson/chat-llm
           </a>
-
           <div className="text-center">Click here to find your api key</div>
           <a
             href="https://platform.openai.com/account/api-keys"
             target="_blank"
-            className="text-blue-600 underline"
+            className="mb-6 text-blue-600 underline"
           >
             https://platform.openai.com/account/api-keys
           </a>
+          <div className="text-center">
+            Press "Default chat" to get started, or create a chat config!
+          </div>
         </div>
       </div>
     );
