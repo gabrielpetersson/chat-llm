@@ -114,7 +114,7 @@ export const MessageList: FC<ChatMessagesProps> = ({
         );
 
         return isScrollable && i === messages.length - 1 ? (
-          <div key={message.id} className="min-h-[200px]">
+          <div key={message.id} className="min-h-[300px]">
             {msg}
           </div>
         ) : (
