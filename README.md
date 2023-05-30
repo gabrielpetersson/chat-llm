@@ -5,8 +5,7 @@
 4. Ask multiple questions at the same time, in the same or in different panes
 5. Use shortcuts to open any chat config
 <img width="1710" alt="image" src="https://github.com/gabrielpetersson/chatgpt-2/assets/46445785/ab433b7f-48a5-4b6f-8470-89dff00ee77e">
-<img width="1707" alt="image" src="https://github.com/gabrielpetersson/chat-llm/assets/46445785/2fcbd955-e8be-467d-8947-2243b1acc823">
-
+<img width="1709" alt="image" src="https://github.com/gabrielpetersson/chat-llm/assets/46445785/2f7759ca-eb66-4863-96b6-394f4081ff19">
 https://chatgpt-2-lac.vercel.app/
 ### What this project is and what it is not
 1. It's a chat UI for engineers and power users of chatgpt, with the hypothesis that creating new chats with the right config fast, and being able to send multiple questions at the same time is the best way of using chatgpt.
