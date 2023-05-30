@@ -5,6 +5,7 @@
 4. Ask multiple questions at the same time, in the same or in different panes
 5. Use shortcuts to open any chat config
 <img width="1710" alt="image" src="https://github.com/gabrielpetersson/chatgpt-2/assets/46445785/ab433b7f-48a5-4b6f-8470-89dff00ee77e">
+<img width="1706" alt="image" src="https://github.com/gabrielpetersson/chat-llm/assets/46445785/8dc46ed9-5736-42ad-bcf5-1624cb785cf4">
 
 https://chatgpt-2-lac.vercel.app/
 ### What this project is and what it is not
