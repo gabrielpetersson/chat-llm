@@ -88,7 +88,7 @@ export const MessageList: FC<ChatMessagesProps> = ({
     const scrollHeightChanged = prevScrollHeight !== ref.current?.scrollHeight;
 
     const isAtBottom =
-      prevScrollHeight - container.clientHeight - container.scrollTop < 40;
+      prevScrollHeight - container.clientHeight - container.scrollTop < 10;
     if (isAtBottom && (isNewMessage || scrollHeightChanged)) {
       container.scrollTop = container.scrollHeight;
     }
@@ -100,6 +100,7 @@ export const MessageList: FC<ChatMessagesProps> = ({
     }
     return ref.current.scrollHeight - ref.current.clientHeight > 0;
   })();
+  // TODO should not be hardcoded
   const codeLang = "javascript";
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto" ref={ref}>
@@ -113,6 +114,7 @@ export const MessageList: FC<ChatMessagesProps> = ({
           />
         );
 
+        // adds a height to the last message so it does not start autoscroll
         return isScrollable && i === messages.length - 1 ? (
           <div key={message.id} className="min-h-[300px]">
             {msg}

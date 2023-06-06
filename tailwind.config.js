@@ -33,10 +33,21 @@ export default {
           3: "#6A5848",
         },
       },
+      fontSize: {
+        header: [
+          "28px",
+          {
+            fontWeight: "bold",
+          },
+        ],
+        title: [
+          "20px",
+          {
+            fontWeight: "500",
+          },
+        ],
+      },
     },
   },
-  // corePlugins: {
-  //   preflight: false,
-  // },
   plugins: [],
 };

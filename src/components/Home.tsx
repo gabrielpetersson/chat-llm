@@ -1,7 +1,7 @@
-import { Panes } from "./pane/Panes";
+import { Panes } from "./pane/Pane";
 import { ConversationList } from "./conversations/Conversations";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import { Presets } from "./preset/Preset";
+import { ChatConfigList } from "./preset/ChatConfigList";
 import { OpenAIKeyInput } from "./OpenAIKey";
 
 export const Home = () => {
@@ -10,7 +10,7 @@ export const Home = () => {
     <main className={`flex flex-1`}>
       <div className="grid flex-1 grid-cols-[minmax(200px,300px)_minmax(500px,1fr)] grid-rows-[1fr]">
         <div className="flex min-h-0 flex-col bg-dark-gray p-[8px]">
-          <Presets />
+          <ChatConfigList />
           <div className="shrink-0 truncate py-1 text-[12px] text-white opacity-50">
             {"Hold ⌘ to open chat in new pane"}
           </div>

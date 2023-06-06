@@ -1,5 +1,5 @@
 import { PromiseExtended } from "dexie";
-import { Conversation, database, Message, Preset } from "../db";
+import { Conversation, database, Message, Preset } from ".";
 
 export const dbSelectConversations = (): PromiseExtended<Conversation[]> => {
   return database.conversations.reverse().toArray();

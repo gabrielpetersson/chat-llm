@@ -26,7 +26,7 @@ export interface Preset {
   models: ("gpt-3.5-turbo" | "gpt-4")[];
   systemPrompt: string;
   temprature: number;
-  shortcut?: string;
+  shortcut: string | null;
 }
 export type AddPreset = Omit<Preset, "id">;
 

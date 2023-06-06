@@ -5,4 +5,5 @@ import eslint from "vite-plugin-eslint";
 
 export default defineConfig({
   plugins: [react(), eslint()], //pluginChecker({ typescript: true })
+  server: { hmr: { overlay: false } },
 });
