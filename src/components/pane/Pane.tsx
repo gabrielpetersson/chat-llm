@@ -68,6 +68,9 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
       textArea.clientHeight / 2
     );
 
+    // first setting height to auto will force layout, and get the actual scrollHeight.
+    // if for example removing lines in the textarea, height: auto will shrink the text area
+    // before scrollheight is calculated
     textArea.style.height = "auto";
     if (isMaxSize) {
       textArea.style.overflowY = "auto";
@@ -154,15 +157,6 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
           [isActivePane, messages]
         )}
         <div className="flex items-center justify-center p-4">
-          {/* <input
-            ref={inputRef}
-            value={messageDraft}
-            autoFocus
-            onChange={(e) => setMessageDraft(e.target.value)}
-            onKeyDown={onKeydown}
-            placeholder="Tell me something..."
-            className="text-input w-full max-w-[500px] shadow-[0_0_10px_rgba(0,0,0,0.10)] outline-none"
-          /> */}
           <textarea
             ref={textAreaRef}
             rows={1}

@@ -90,7 +90,7 @@ export const sendMessage = (
       };
       await openaiQueryStream([{ role: "user", content: query }], onDelta, {
         maxTokens: 20,
-        temprature: 1,
+        temperature: 1,
       });
     })();
 
@@ -123,12 +123,12 @@ export const sendMessage = (
     openaiMessages.unshift({ role: "system", content: systemPrompt });
 
     const model = chatConfig != null ? chatConfig.models[0] : "gpt-3.5-turbo";
-    const temprature = chatConfig != null ? chatConfig.temprature : 0.5;
+    const temperature = chatConfig != null ? chatConfig.temprature : 0.5;
 
     const responseContent = await openaiQueryStream(openaiMessages, onDelta, {
       maxTokens: 1000,
       model,
-      temprature,
+      temperature: temperature,
     });
     await db.setMessageContent(assistantMessageId, responseContent);
     // TODO(gab): the message stream is not cleaned up, as apparently the indexdb
