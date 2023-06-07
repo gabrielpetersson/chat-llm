@@ -1,5 +1,5 @@
 import { PromiseExtended } from "dexie";
-import { Conversation, database, Message, Preset } from ".";
+import { Conversation, database, Message, ChatConfig } from ".";
 
 export const dbSelectConversations = (): PromiseExtended<Conversation[]> => {
   return database.conversations.reverse().toArray();
@@ -35,10 +35,10 @@ export const dbSelectConversation = (
   return database.conversations.get(conversationId);
 };
 
-export const dbSelectPreset = (
-  presetId: number
-): PromiseExtended<Preset | undefined> => {
-  return database.presets.get(presetId);
+export const dbSelectChatConfig = (
+  chatConfigId: number
+): PromiseExtended<ChatConfig | undefined> => {
+  return database.presets.get(chatConfigId);
 };
 
 export const dbSelectConversationAll = (
@@ -47,7 +47,7 @@ export const dbSelectConversationAll = (
   return database.conversations.get(conversationId);
 };
 
-export const dbSelectPresets = (): PromiseExtended<Preset[]> => {
+export const dbSelectChatConfigs = (): PromiseExtended<ChatConfig[]> => {
   return database.presets.reverse().toArray();
 };
 

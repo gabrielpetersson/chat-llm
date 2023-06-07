@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { startNewConversation } from "../../state/conversations";
 import { useAppDispatch } from "../../state/store";
 import { useLiveQuery } from "dexie-react-hooks";
-import { dbSelectPresets } from "../../db/db-selectors";
+import { dbSelectChatConfigs } from "../../db/db-selectors";
 
 const SHORTCUTS: Record<string, string> = {
   KeyA: "a",
@@ -12,16 +12,16 @@ const SHORTCUTS: Record<string, string> = {
   Space: "Space",
 };
 
-export const usePresetShortcut = () => {
+export const useOpenChatConfigShortcut = () => {
   const dispatch = useAppDispatch();
-  const presets = useLiveQuery(() => dbSelectPresets(), []);
+  const chatConfigs = useLiveQuery(() => dbSelectChatConfigs(), []);
 
   useEffect(() => {
-    if (presets == null) {
+    if (chatConfigs == null) {
       return;
     }
 
-    const getPresetId = (key: string): number | "default" | null => {
+    const getChatConfigId = (key: string): number | "default" | null => {
       const shortcut = SHORTCUTS[key];
       if (shortcut == null) {
         return null;
@@ -29,35 +29,37 @@ export const usePresetShortcut = () => {
       if (shortcut === "Space") {
         return "default";
       }
-      const triggerPresets = presets.filter((p) => p.shortcut === shortcut);
-      if (triggerPresets.length === 0) {
+      const triggerChatConfigs = chatConfigs.filter(
+        (c) => c.shortcut === shortcut
+      );
+      if (triggerChatConfigs.length === 0) {
         return null;
       }
       // TODO(gab): don't allow setting same shortcuts in settings
-      if (triggerPresets.length > 1) {
+      if (triggerChatConfigs.length > 1) {
         window.alert(
           `Multiple shortcuts for '${shortcut}' is set. Keep only one!`
         );
       }
-      return triggerPresets[0].id;
+      return triggerChatConfigs[0].id;
     };
 
     const onKeydown = (e: KeyboardEvent) => {
       if (!e.altKey) {
         return;
       }
-      const presetId = getPresetId(e.code);
-      if (presetId == null) {
+      const chatConfigId = getChatConfigId(e.code);
+      if (chatConfigId == null) {
         return;
       }
       dispatch(
         startNewConversation({
           openInNewPane: e.ctrlKey,
-          presetId: presetId === "default" ? undefined : presetId,
+          chatConfig: chatConfigId === "default" ? undefined : chatConfigId,
         })
       );
     };
     window.addEventListener("keydown", onKeydown);
     return () => window.removeEventListener("keydown", onKeydown);
-  }, [dispatch, presets]);
+  }, [dispatch, chatConfigs]);
 };

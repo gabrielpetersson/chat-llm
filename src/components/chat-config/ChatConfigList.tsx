@@ -1,25 +1,26 @@
 import { FC, MouseEventHandler } from "react";
-import { Preset as ChatConfig, db } from "../../db";
+
 import clsx from "clsx";
 import { useAppDispatch } from "../../state/store";
 import { startNewConversation } from "../../state/conversations";
 import { getOpenAIKey } from "../../utils/openai";
 import usePortal from "react-useportal";
 import { useLiveQuery } from "dexie-react-hooks";
-import { dbSelectPresets } from "../../db/db-selectors";
-import { ChatConfig } from "./ChatConfig";
-import { usePresetShortcut as useStartChatShortcut } from "./useShortcut";
+import { dbSelectChatConfigs } from "../../db/db-selectors";
+import { ChatConfigModal } from "./ChatConfigModal";
+import { useOpenChatConfigShortcut as useStartChatShortcut } from "./useShortcut";
+import { ChatConfig, db } from "../../db";
 
 export const ChatConfigList: FC = () => {
-  const presets = useLiveQuery(() => dbSelectPresets(), []);
+  const chatConfigs = useLiveQuery(() => dbSelectChatConfigs(), []);
   useStartChatShortcut();
   return (
     <div className="mb-2 flex min-h-0 flex-1 flex-col bg-dark-gray">
-      <AddChatConfigButton key={"add-preset"} />
+      <AddChatConfigButton />
       <div className="nice-scrollbar mt-2 flex flex-1 basis-0 flex-col overflow-y-auto">
-        <ChatConfigItem key={"default-preset"} chatConfig={"default"} />
-        {presets?.map((preset) => (
-          <ChatConfigItem key={preset.id} chatConfig={preset} />
+        <ChatConfigItem key={"default-chat-config"} chatConfig={"default"} />
+        {chatConfigs?.map((chatConfig) => (
+          <ChatConfigItem key={chatConfig.id} chatConfig={chatConfig} />
         ))}
       </div>
     </div>
@@ -29,7 +30,7 @@ export const ChatConfigList: FC = () => {
 interface ChatConfigItemProps {
   chatConfig: ChatConfig | "default";
 }
-const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig: preset }) => {
+const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig }) => {
   const dispatch = useAppDispatch();
   const { openPortal, closePortal, isOpen, Portal } = usePortal();
 
@@ -38,7 +39,8 @@ const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig: preset }) => {
     if (key == null) {
       return;
     }
-    const options = preset === "default" ? {} : { presetId: preset.id };
+    const options =
+      chatConfig === "default" ? {} : { chatConfig: chatConfig.id };
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
       dispatch(
         startNewConversation({
@@ -57,21 +59,21 @@ const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig: preset }) => {
   };
 
   const shortcut = (() => {
-    if (preset === "default") {
+    if (chatConfig === "default") {
       return "⌥ + ⎵";
     }
-    return preset.shortcut != null
-      ? `⌥ + ${preset.shortcut.toUpperCase()}`
+    return chatConfig.shortcut != null
+      ? `⌥ + ${chatConfig.shortcut.toUpperCase()}`
       : null;
   })();
   return (
     <>
-      {isOpen && preset !== "default" && (
+      {isOpen && chatConfig !== "default" && (
         <Portal>
-          <ChatConfig
-            initialPreset={preset}
+          <ChatConfigModal
+            initialChatConfig={chatConfig}
             onClose={closePortal}
-            onSubmit={(p) => db.putPreset({ ...preset, ...p })}
+            onSubmit={(p) => db.putChatConfig({ ...chatConfig, ...p })}
           />
         </Portal>
       )}
@@ -85,12 +87,12 @@ const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig: preset }) => {
           file_open
         </span>
         <div className={"truncate text-[13px]"}>
-          {preset === "default" ? "Default chat" : preset.title}
+          {chatConfig === "default" ? "Default chat" : chatConfig.title}
         </div>
         <div className={"ml-1 flex-1 shrink-0 pt-[1px] text-[11px] opacity-50"}>
           {shortcut}
         </div>
-        {preset !== "default" && (
+        {chatConfig !== "default" && (
           <div
             onClickCapture={handleClickSettings}
             className="mx-1 flex h-7 w-7 shrink-0 items-center justify-center rounded hover:bg-gray-700 active:bg-gray-600"
@@ -109,7 +111,7 @@ const AddChatConfigButton: FC = () => {
     <>
       {isOpen && (
         <Portal>
-          <ChatConfig onClose={closePortal} onSubmit={db.addPreset} />
+          <ChatConfigModal onClose={closePortal} onSubmit={db.addChatConfig} />
         </Portal>
       )}
       <div

@@ -1,23 +1,23 @@
 import clsx from "clsx";
 import { FC, useState, MouseEventHandler, ReactNode, useEffect } from "react";
-import { Preset } from "../../db";
-import {
-  ChatConfigProvider,
-  usePresetConfigContext,
-} from "./ChatConfigContext";
+import { ChatConfig } from "../../db";
+import { ChatConfigProvider, useChatConfigContext } from "./ChatConfigContext";
 
 interface ChatConfigProps {
-  initialPreset?: Preset;
+  initialChatConfig?: ChatConfig;
   onClose: () => void;
-  onSubmit: (preset: Omit<Preset, "id" | "ts">) => void;
+  onSubmit: (chatConfig: Omit<ChatConfig, "id" | "ts">) => void;
 }
-export const ChatConfig: FC<ChatConfigProps> = ({
-  initialPreset,
+export const ChatConfigModal: FC<ChatConfigProps> = ({
+  initialChatConfig,
   onSubmit,
   onClose,
 }) => {
   return (
-    <ChatConfigProvider initialPreset={initialPreset} onSubmit={onSubmit}>
+    <ChatConfigProvider
+      initialChatConfig={initialChatConfig}
+      onSubmit={onSubmit}
+    >
       <ChatConfigDumb onClose={onClose} />
     </ChatConfigProvider>
   );
@@ -29,7 +29,7 @@ interface ChatConfigDumbProps {
 
 const ChatConfigDumb: FC<ChatConfigDumbProps> = ({ onClose }) => {
   const {
-    preset,
+    chatConfig,
     isCreatingConfig,
     setTitle,
     setModel,
@@ -37,10 +37,10 @@ const ChatConfigDumb: FC<ChatConfigDumbProps> = ({ onClose }) => {
     setSystemPrompt,
     setTemperature,
     submit,
-  } = usePresetConfigContext();
+  } = useChatConfigContext();
 
   const [textTemperature, setTextTemperature] = useState(
-    preset.temprature.toString() ?? "1.0"
+    chatConfig.temprature.toString() ?? "1.0"
   );
 
   const temperature = (() => {
@@ -72,7 +72,7 @@ const ChatConfigDumb: FC<ChatConfigDumbProps> = ({ onClose }) => {
     onClose();
   };
 
-  const { title, shortcut, models, systemPrompt } = preset;
+  const { title, shortcut, models, systemPrompt } = chatConfig;
   const disable = title === "" || isFaultyTemperature;
   return (
     <div

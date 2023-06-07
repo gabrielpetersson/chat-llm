@@ -3,6 +3,7 @@ import {
   FC,
   KeyboardEventHandler,
   MouseEventHandler,
+  MutableRefObject,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -21,8 +22,10 @@ import { Pane, paneSlice } from "../../state/panes";
 import { Uuid } from "../../utils/uuid";
 import { useLiveQuery } from "dexie-react-hooks";
 import clsx from "clsx";
-import { usePrevious } from "../hooks/usePrevious";
-import { dbSelectConversation, dbSelectPresets } from "../../db/db-selectors";
+import {
+  dbSelectConversation,
+  dbSelectChatConfigs,
+} from "../../db/db-selectors";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Conversation, db } from "../../db";
 
@@ -44,14 +47,11 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
   const [messageDraft, setMessageDraft] = useState("");
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  // TODO(gab): move input focus to a redux extras action
-  const prevIsActive = usePrevious(isActivePane);
-  const becameActive = isActivePane && !prevIsActive;
-  useEffect(() => {
-    if (becameActive) {
-      textAreaRef.current?.focus();
-    }
-  }, [becameActive]);
+  useFocusInputOnActive({
+    ref: textAreaRef,
+    isActive: isActivePane,
+    conversationId: conversation?.id,
+  });
 
   useLayoutEffect(() => {
     const textArea = textAreaRef.current;
@@ -59,18 +59,23 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
       return;
     }
 
-    const halfScreen = textArea.clientHeight / 2;
-    const isMaxSize = textArea.scrollHeight > halfScreen;
-    if (isMaxSize) {
-      textArea.style.overflowY = "auto";
-    } else {
-      textArea.style.overflowY = "hidden";
-    }
+    const maxSize = window.innerHeight / 2.5;
+    const isMaxSize = textArea.scrollHeight > maxSize;
+    console.log(
+      isMaxSize,
+      maxSize,
+      textArea.clientHeight,
+      textArea.clientHeight / 2
+    );
 
     textArea.style.height = "auto";
-    textArea.style.height = `${
-      textArea.scrollHeight //isMaxSize ? halfScreen : textArea.scrollHeight
-    }px`;
+    if (isMaxSize) {
+      textArea.style.overflowY = "auto";
+      textArea.style.height = `${maxSize}px`;
+    } else {
+      textArea.style.overflowY = "hidden";
+      textArea.style.height = `${textArea.scrollHeight}px`;
+    }
   }, [messageDraft]);
 
   const onKeydown: KeyboardEventHandler<HTMLTextAreaElement> = async (e) => {
@@ -124,7 +129,9 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
                 ? "New conversation"
                 : conversation.title}
             </div>
-            {conversation ? <ChoosePreset conversation={conversation} /> : null}
+            {conversation ? (
+              <ChatConfigDropdown conversation={conversation} />
+            ) : null}
           </div>
 
           <div
@@ -170,6 +177,22 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
       </div>
     </div>
   );
+};
+
+const useFocusInputOnActive = ({
+  ref,
+  isActive,
+  conversationId,
+}: {
+  isActive: boolean;
+  ref: MutableRefObject<HTMLTextAreaElement | null>;
+  conversationId?: number;
+}) => {
+  useEffect(() => {
+    if (isActive && conversationId && ref.current != null) {
+      ref.current.focus();
+    }
+  }, [conversationId, isActive, ref]);
 };
 
 const StartPage: FC = () => (
@@ -220,17 +243,19 @@ export const Panes: FC = () => {
   );
 };
 
-interface ChoosePresetProps {
+interface ChatConfigDropdownProps {
   conversation: Conversation;
 }
-const ChoosePreset: FC<ChoosePresetProps> = ({ conversation }) => {
-  const presets = useLiveQuery(() => dbSelectPresets(), []);
-  const currentPreset = presets?.find((p) => p.id === conversation.presetId);
+const ChatConfigDropdown: FC<ChatConfigDropdownProps> = ({ conversation }) => {
+  const chatConfigs = useLiveQuery(() => dbSelectChatConfigs(), []);
+  const currentChatConfig = chatConfigs?.find(
+    (p) => p.id === conversation.presetId
+  );
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild tabIndex={-1}>
         <button className="mt-[-8px] flex items-center text-[11px] font-thin text-gray-500 outline-none">
-          {`Chat config: ${currentPreset?.title ?? "Default"}`}
+          {`Chat config: ${currentChatConfig?.title ?? "Default"}`}
           <span className="material-symbols-outlined pt-1 text-[16px]">
             expand_more
           </span>
@@ -242,26 +267,29 @@ const ChoosePreset: FC<ChoosePresetProps> = ({ conversation }) => {
           sideOffset={5}
         >
           <DropdownMenu.Item className="w-full truncate border-b border-gray-300 bg-gray-100 p-2 text-[11px] outline-none">
-            {"Select preset"}
+            {"Select chat config"}
           </DropdownMenu.Item>
           <DropdownMenu.Item
             onClick={() => {
-              db.setConversationPresetId(conversation.id, "default");
+              db.setConversationChatConfigId(conversation.id, "default");
             }}
             className="w-full cursor-pointer truncate p-2 text-[11px] outline-none hover:bg-gray-100"
           >
             {"Default chat"}
           </DropdownMenu.Item>
-          {presets?.map((preset) => {
+          {chatConfigs?.map((chatConfig) => {
             return (
               <DropdownMenu.Item
-                key={preset.id}
+                key={chatConfig.id}
                 className="w-full cursor-pointer truncate p-2 text-[11px] outline-none hover:bg-gray-100"
                 onClick={() => {
-                  db.setConversationPresetId(conversation.id, preset.id);
+                  db.setConversationChatConfigId(
+                    conversation.id,
+                    chatConfig.id
+                  );
                 }}
               >
-                {preset.title}
+                {chatConfig.title}
               </DropdownMenu.Item>
             );
           })}

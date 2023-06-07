@@ -1,8 +1,8 @@
 import React, { createContext, useContext, FC, useState } from "react";
-import { Preset } from "../../db";
+import { ChatConfig } from "../../db";
 
 interface ChatConfigContextState {
-  preset: Omit<Preset, "id" | "ts">;
+  chatConfig: Omit<ChatConfig, "id" | "ts">;
   isCreatingConfig: boolean;
   setTitle: (title: string) => void;
   setSystemPrompt: (systemPrompt: string) => void;
@@ -16,16 +16,16 @@ const ChatConfigContext = createContext<ChatConfigContextState | null>(null);
 
 interface Props {
   children: React.ReactNode;
-  initialPreset?: Preset;
-  onSubmit: (preset: Omit<Preset, "id" | "ts">) => void;
+  initialChatConfig?: ChatConfig;
+  onSubmit: (chatConfig: Omit<ChatConfig, "id" | "ts">) => void;
 }
 export const ChatConfigProvider: FC<Props> = ({
   children,
-  initialPreset,
+  initialChatConfig,
   onSubmit,
 }) => {
-  const [preset, setPreset] = useState<Omit<Preset, "id" | "ts">>(
-    initialPreset ?? {
+  const [chatConfig, setChatConfig] = useState<Omit<ChatConfig, "id" | "ts">>(
+    initialChatConfig ?? {
       title: "",
       models: ["gpt-4"],
       systemPrompt: "",
@@ -35,29 +35,29 @@ export const ChatConfigProvider: FC<Props> = ({
   );
 
   const setTitle = (title: string) => {
-    setPreset((p) => ({ ...p, title }));
+    setChatConfig((p) => ({ ...p, title }));
   };
   const setModel = (model: "gpt-4" | "gpt-3.5-turbo") => {
-    setPreset((p) => ({ ...p, models: [model] }));
+    setChatConfig((p) => ({ ...p, models: [model] }));
   };
   const setSystemPrompt = (systemPrompt: string) => {
-    setPreset((p) => ({ ...p, systemPrompt }));
+    setChatConfig((p) => ({ ...p, systemPrompt }));
   };
   const setTemperature = (temperature: number) => {
     // TODO: typo in db
-    setPreset((p) => ({ ...p, temprature: temperature }));
+    setChatConfig((p) => ({ ...p, temprature: temperature }));
   };
   const setShortcut = (shortcut: string | null) => {
-    setPreset((p) => ({ ...p, shortcut }));
+    setChatConfig((p) => ({ ...p, shortcut }));
   };
   const submit = () => {
-    onSubmit(preset);
+    onSubmit(chatConfig);
   };
   return (
     <ChatConfigContext.Provider
       value={{
-        preset,
-        isCreatingConfig: initialPreset == null,
+        chatConfig: chatConfig,
+        isCreatingConfig: initialChatConfig == null,
         setTitle,
         setSystemPrompt,
         setTemperature,
@@ -72,7 +72,7 @@ export const ChatConfigProvider: FC<Props> = ({
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const usePresetConfigContext = () => {
+export const useChatConfigContext = () => {
   const context = useContext(ChatConfigContext);
   if (context == null) {
     throw new Error("no chat config context");

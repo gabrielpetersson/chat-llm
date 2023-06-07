@@ -5,7 +5,7 @@ import { db } from "../db";
 import {
   dbSelectConversation,
   dbSelectMessages,
-  dbSelectPreset,
+  dbSelectChatConfig,
 } from "../db/db-selectors";
 import { openaiQueryStream } from "../utils/openai";
 import { batchActions } from "redux-batched-actions";
@@ -108,11 +108,11 @@ export const sendMessage = (
         })
       );
     };
-    const preset = conversation.presetId
-      ? await dbSelectPreset(conversation.presetId)
+    const chatConfig = conversation.presetId
+      ? await dbSelectChatConfig(conversation.presetId)
       : null;
     const systemPrompt =
-      preset == null ? DEFAULT_SYSTEM_PROMPT : preset.systemPrompt;
+      chatConfig == null ? DEFAULT_SYSTEM_PROMPT : chatConfig.systemPrompt;
 
     const openaiMessages = messages
       .map(({ role, content }) => ({
@@ -122,8 +122,8 @@ export const sendMessage = (
       .slice(-10); // TODO: check actual num of tokens
     openaiMessages.unshift({ role: "system", content: systemPrompt });
 
-    const model = preset != null ? preset.models[0] : "gpt-3.5-turbo";
-    const temprature = preset != null ? preset.temprature : 0.5;
+    const model = chatConfig != null ? chatConfig.models[0] : "gpt-3.5-turbo";
+    const temprature = chatConfig != null ? chatConfig.temprature : 0.5;
 
     const responseContent = await openaiQueryStream(openaiMessages, onDelta, {
       maxTokens: 1000,
@@ -139,10 +139,10 @@ export const sendMessage = (
 
 export const startNewConversation = (options?: {
   openInNewPane?: boolean;
-  presetId?: number;
+  chatConfig?: number;
 }): AppThunk => {
   return async (dispatch) => {
-    const conversationId = await db.addConversation(options?.presetId);
+    const conversationId = await db.addConversation(options?.chatConfig);
     dispatch(openConversation(conversationId.valueOf() as number, options));
     return conversationId;
   };

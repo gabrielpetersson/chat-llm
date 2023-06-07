@@ -1,7 +1,7 @@
 import { Panes } from "./pane/Pane";
 import { ConversationList } from "./conversations/Conversations";
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import { ChatConfigList } from "./preset/ChatConfigList";
+import { ChatConfigList } from "./chat-config/ChatConfigList";
 import { OpenAIKeyInput } from "./OpenAIKey";
 
 export const Home = () => {
