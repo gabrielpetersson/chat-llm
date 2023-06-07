@@ -26,9 +26,18 @@ export interface ChatConfig {
   models: ("gpt-3.5-turbo" | "gpt-4")[];
   systemPrompt: string;
   temprature: number;
-  shortcut: string | null;
+  shortcut?: string | null;
 }
 export type AddChatConfig = Omit<ChatConfig, "id">;
+
+export interface AgentConfig {
+  id: number;
+  ts: number;
+  presetId: number;
+  description: string;
+  goals: string[];
+}
+export type AddAgentConfig = Omit<AgentConfig, "id">;
 
 export class Database extends Dexie {
   conversations!: Table<Conversation>;
