@@ -44,8 +44,8 @@ export const openaiQueryStream = async (
   {
     maxTokens = 2000,
     model = "gpt-3.5-turbo",
-    temprature = 0,
-  }: { maxTokens?: number; model?: string; temprature?: number } = {}
+    temperature = 0,
+  }: { maxTokens?: number; model?: string; temperature?: number } = {}
 ) => {
   const controller = new AbortController();
   const requestOptions = {
@@ -56,7 +56,7 @@ export const openaiQueryStream = async (
     },
     body: JSON.stringify({
       messages,
-      temperature: temprature,
+      temperature,
       model: model,
       max_tokens: maxTokens,
       top_p: 0.5,

@@ -19,21 +19,21 @@ export interface Conversation {
 }
 export type AddConversation = Omit<Conversation, "id">;
 
-export interface Preset {
+export interface ChatConfig {
   id: number;
   ts: number;
   title: string;
   models: ("gpt-3.5-turbo" | "gpt-4")[];
   systemPrompt: string;
   temprature: number;
-  shortcut?: string;
+  shortcut: string | null;
 }
-export type AddPreset = Omit<Preset, "id">;
+export type AddChatConfig = Omit<ChatConfig, "id">;
 
 export class Database extends Dexie {
   conversations!: Table<Conversation>;
   messages!: Table<Message>;
-  presets!: Table<Preset>;
+  presets!: Table<ChatConfig>;
   constructor() {
     super("db");
     this.version(1).stores({
@@ -65,18 +65,18 @@ const setConversationTitle = async (conversationId: number, title: string) => {
     });
 };
 
-const setConversationPresetId = async (
+const setConversationChatConfigId = async (
   conversationId: number,
-  presetId: number | "default"
+  chatConfigId: number | "default"
 ) => {
   return await database.conversations
     .where("id")
     .equals(conversationId)
     .modify((conversation) => {
-      if (presetId === "default") {
+      if (chatConfigId === "default") {
         delete conversation.presetId;
       } else {
-        conversation.presetId = presetId;
+        conversation.presetId = chatConfigId;
       }
     });
 };
@@ -96,24 +96,24 @@ const addMessage = async (
   return messageId;
 };
 
-const addConversation = async (presetId?: number) => {
+const addConversation = async (chatConfigId?: number) => {
   const conversation: AddConversation = {
     ts: Date.now(),
-    ...(presetId != null && { presetId: presetId }),
+    ...(chatConfigId != null && { presetId: chatConfigId }),
   };
   return await database.conversations.add(conversation as Conversation);
 };
 
-const addPreset = async (preset: Omit<AddPreset, "ts">) => {
-  const addPreset: AddPreset = {
+const addChatConfig = async (chatConfig: Omit<AddChatConfig, "ts">) => {
+  const addChatConfig: AddChatConfig = {
     ts: Date.now(),
-    ...preset,
+    ...chatConfig,
   };
-  return await database.presets.add(addPreset as Preset);
+  return await database.presets.add(addChatConfig as ChatConfig);
 };
 
-const putPreset = async (preset: Preset) => {
-  return await database.presets.put(preset);
+const putChatConfig = async (chatConfig: ChatConfig) => {
+  return await database.presets.put(chatConfig);
 };
 
 const deleteConversation = async (conversationId: number) => {
@@ -129,8 +129,8 @@ export const db = {
   addMessage,
   setMessageContent,
   setConversationTitle,
-  setConversationPresetId,
+  setConversationChatConfigId,
   deleteConversation,
-  addPreset,
-  putPreset,
+  addChatConfig,
+  putChatConfig,
 };

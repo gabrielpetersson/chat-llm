@@ -31,6 +31,7 @@ const ConversationItem: FC<ConversationItemProps> = ({
     if (key == null) {
       return;
     }
+    e.preventDefault();
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
       dispatch(openConversation(conversation.id, { openInNewPane: true }));
       return;
