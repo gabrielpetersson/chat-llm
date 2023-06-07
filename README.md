@@ -1,13 +1,13 @@
 # Chat LLM - [Try it](https://chatgpt-2-lac.vercel.app/)
 
 1. Create _chat configs_ with system prompts, open in one click
-2. 100% local. Your key is stored in LocalStorage and all data inside IndexedDB in your browser.
+2. 100% local. Your key is stored in LocalStorage and chats inside IndexedDB in your browser. There is no server
 3. Hold command to open chat in a new pane
 4. Ask multiple questions at the same time, in the same or in different panes
 5. Use shortcuts to open any chat config
    <img width="1710" alt="image" src="https://github.com/gabrielpetersson/chatgpt-2/assets/46445785/ab433b7f-48a5-4b6f-8470-89dff00ee77e">
-
-https://chatgpt-2-lac.vercel.app/
+   <img width="1709" alt="image" src="https://github.com/gabrielpetersson/chat-llm/assets/46445785/2f7759ca-eb66-4863-96b6-394f4081ff19">
+   https://chatgpt-2-lac.vercel.app/
 
 ### What this project is and what it is not
 
