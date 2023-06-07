@@ -61,14 +61,8 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
 
     const maxSize = window.innerHeight / 2.5;
     const isMaxSize = textArea.scrollHeight > maxSize;
-    console.log(
-      isMaxSize,
-      maxSize,
-      textArea.clientHeight,
-      textArea.clientHeight / 2
-    );
 
-    // first setting height to auto will force layout, and get the actual scrollHeight.
+    // NOTE(gab): first setting height to auto will force layout, and get the actual scrollHeight.
     // if for example removing lines in the textarea, height: auto will shrink the text area
     // before scrollheight is calculated
     textArea.style.height = "auto";
