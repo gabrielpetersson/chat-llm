@@ -17,7 +17,10 @@ import {
   useMessages,
 } from "../../state/selectors";
 import { useAppDispatch, useAppSelector } from "../../state/store";
-import { sendMessage } from "../../state/conversations";
+import {
+  sendAgentMessage as sendGodModeMessage,
+  sendMessage,
+} from "../../state/conversations";
 import { Pane, paneSlice } from "../../state/panes";
 import { Uuid } from "../../utils/uuid";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -25,9 +28,11 @@ import clsx from "clsx";
 import {
   dbSelectConversation,
   dbSelectChatConfigs,
+  dbSelectChatConfig,
 } from "../../db/db-selectors";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Conversation, db } from "../../db";
+import { db } from "../../db";
+import { ChatConfig, Conversation } from "../../db/models";
 
 interface PaneProps {
   pane: Pane;
@@ -38,10 +43,26 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
   const activePaneId = useAppSelector(selectActivePaneId);
   const isActivePane = activePaneId === paneId;
 
-  const conversation = useLiveQuery(
-    () => dbSelectConversation(pane.conversationId),
-    [pane.conversationId]
+  // TODO: merge conversation and chat config in one query
+  const { conversation, chatConfig } = useLiveQuery(
+    async () => {
+      const conversation = await dbSelectConversation(pane.conversationId);
+      const res: {
+        conversation: Conversation | null;
+        chatConfig: ChatConfig | null;
+      } = { conversation: conversation ?? null, chatConfig: null };
+      if (conversation?.chatConfigId) {
+        const chatConfig = await dbSelectChatConfig(conversation.chatConfigId);
+        res.chatConfig = chatConfig ?? null;
+      }
+      return res;
+    },
+    [pane.conversationId],
+    { conversation: null, chatConfig: null }
   );
+
+  // TODO: make pane take provider
+  const provider = chatConfig?.providers[0] ?? null;
   const messages = useMessages(pane.conversationId);
 
   const [messageDraft, setMessageDraft] = useState("");
@@ -53,6 +74,7 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
     conversationId: conversation?.id,
   });
 
+  // NOTE(gab): resizable text area logic
   useLayoutEffect(() => {
     const textArea = textAreaRef.current;
     if (textArea == null) {
@@ -61,14 +83,8 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
 
     const maxSize = window.innerHeight / 2.5;
     const isMaxSize = textArea.scrollHeight > maxSize;
-    console.log(
-      isMaxSize,
-      maxSize,
-      textArea.clientHeight,
-      textArea.clientHeight / 2
-    );
 
-    // first setting height to auto will force layout, and get the actual scrollHeight.
+    // NOTE(gab): first setting height to auto will force layout, and get the actual scrollHeight.
     // if for example removing lines in the textarea, height: auto will shrink the text area
     // before scrollheight is calculated
     textArea.style.height = "auto";
@@ -94,7 +110,12 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
     }
     e.preventDefault();
     setMessageDraft("");
-    await dispatch(sendMessage(pane.conversationId, messageDraft));
+
+    if (provider?.type === "godmode") {
+      dispatch(sendGodModeMessage(pane.conversationId, messageDraft));
+      return;
+    }
+    dispatch(sendMessage(pane.conversationId, messageDraft));
   };
 
   const onInput: ChangeEventHandler<HTMLTextAreaElement> = async (e) => {
@@ -154,7 +175,7 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
           () => (
             <MessageList messages={messages} isActivePane={isActivePane} />
           ),
-          [isActivePane, messages]
+          [messages, isActivePane]
         )}
         <div className="flex items-center justify-center p-4">
           <textarea
@@ -241,9 +262,9 @@ interface ChatConfigDropdownProps {
   conversation: Conversation;
 }
 const ChatConfigDropdown: FC<ChatConfigDropdownProps> = ({ conversation }) => {
-  const chatConfigs = useLiveQuery(() => dbSelectChatConfigs(), []);
+  const chatConfigs = useLiveQuery(dbSelectChatConfigs, []);
   const currentChatConfig = chatConfigs?.find(
-    (p) => p.id === conversation.presetId
+    (p) => p.id === conversation.chatConfigId
   );
   return (
     <DropdownMenu.Root>

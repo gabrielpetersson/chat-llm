@@ -3,9 +3,10 @@ import { ConversationList } from "./conversations/Conversations";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { ChatConfigList } from "./chat-config/ChatConfigList";
 import { OpenAIKeyInput } from "./OpenAIKey";
+import { OPEN_AI_KEY } from "../utils/openai";
 
 export const Home = () => {
-  const [storedKey, setStoredKey] = useLocalStorage("openai-key", "");
+  const [storedKey, setStoredKey] = useLocalStorage(OPEN_AI_KEY, "");
   return (
     <main className={`flex flex-1`}>
       <div className="grid flex-1 grid-cols-[minmax(200px,300px)_minmax(500px,1fr)] grid-rows-[1fr]">

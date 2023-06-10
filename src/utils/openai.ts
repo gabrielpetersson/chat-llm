@@ -1,14 +1,12 @@
-import { MessageRole } from "../db";
-
 const OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
-type OpenAIMessage = { role: MessageRole; content: string };
+type OpenAIMessage = { role: string; content: string };
 export const openaiQuery = async (
   messages: OpenAIMessage[],
-  options: { maxTokens?: number; model?: string; temprature?: number } = {
+  options: { maxTokens?: number; model?: string; temperature?: number } = {
     maxTokens: 1000,
     model: "gpt-3.5-turbo",
-    temprature: 0,
+    temperature: 0,
   }
 ) => {
   const requestOptions = {
@@ -19,7 +17,7 @@ export const openaiQuery = async (
     },
     body: JSON.stringify({
       messages,
-      temperature: options.temprature,
+      temperature: options.temperature,
       model: options.model,
       max_tokens: options.maxTokens,
       top_p: 0.5,
@@ -107,12 +105,13 @@ export const openaiQueryStream = async (
   return messageStreamContent;
 };
 
-export const storeOpenAIKey = (key: string) => {
-  localStorage.setItem("openai-key", key);
+export const OPEN_AI_KEY = "openai-key";
+export const setOpenAIKey = (key: string) => {
+  localStorage.setItem(OPEN_AI_KEY, key);
 };
 
 export const getOpenAIKey = () => {
-  const key = localStorage.getItem("openai-key");
+  const key = localStorage.getItem(OPEN_AI_KEY);
   if (key == null) {
     window.alert("Please enter your OpenAI API key");
     throw new Error("OpenAI API key not set");
