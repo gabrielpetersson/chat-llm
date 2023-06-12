@@ -1,5 +1,11 @@
 import { PromiseExtended } from "dexie";
-import { Conversation, database, Message, ChatConfig } from ".";
+import { database } from ".";
+import {
+  Conversation,
+  Message,
+  ChatConfig,
+  GodModeGoalsMessage,
+} from "./models";
 
 export const dbSelectConversations = (): PromiseExtended<Conversation[]> => {
   return database.conversations.reverse().toArray();
@@ -20,6 +26,14 @@ export const dbSelectMessages = (
     .toArray();
 };
 
+export const dbSelectGodModeGoals = (
+  conversationId: number
+): PromiseExtended<GodModeGoalsMessage | undefined> => {
+  return database.messages
+    .where({ conversationId, type: "godmode-agent-goals" })
+    .first() as PromiseExtended<GodModeGoalsMessage | undefined>;
+};
+
 export const dbSelectFirstMessage = (
   conversationId: number
 ): PromiseExtended<Message | undefined> => {
@@ -38,17 +52,11 @@ export const dbSelectConversation = (
 export const dbSelectChatConfig = (
   chatConfigId: number
 ): PromiseExtended<ChatConfig | undefined> => {
-  return database.presets.get(chatConfigId);
-};
-
-export const dbSelectConversationAll = (
-  conversationId: number
-): PromiseExtended<Conversation | undefined> => {
-  return database.conversations.get(conversationId);
+  return database.chatConfigs.get(chatConfigId);
 };
 
 export const dbSelectChatConfigs = (): PromiseExtended<ChatConfig[]> => {
-  return database.presets.reverse().toArray();
+  return database.chatConfigs.reverse().toArray();
 };
 
 export const dbSelectPythonConversations = (): PromiseExtended<
