@@ -42,7 +42,7 @@ export const openaiQueryStream = async (
   messages: OpenAIMessage[],
   onDelta: (delta: string) => void,
   {
-    maxTokens = 2000,
+    maxTokens = 2001,
     model = "gpt-3.5-turbo",
     temperature = 0,
   }: { maxTokens?: number; model?: string; temperature?: number } = {}
