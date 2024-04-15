@@ -37,7 +37,7 @@ export const openaiQuery = async (
   const res = await response.json();
   return res.choices[0].message.content;
 };
-///////////////
+/////////////////
 export const openaiQueryStream = async (
   messages: OpenAIMessage[],
   onDelta: (delta: string) => void,
