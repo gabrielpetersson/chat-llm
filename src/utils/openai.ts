@@ -78,7 +78,7 @@ export const openaiQueryStream = async (
   const reader = response.body?.getReader();
   const decoder = new TextDecoder();
   let messageStreamContent = "";
-  ////
+  //////
   // eslint-disable-next-line no-constant-condition
   while (true) {
     const res = await reader?.read();
