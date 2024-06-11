@@ -1,10 +1,10 @@
 import { useLiveQuery } from "dexie-react-hooks";
-import { Message } from "../db";
 import { dbSelectMessages } from "../db/db-selectors";
 import { Uuid } from "../utils/uuid";
 import { Panes } from "./panes";
 import { RootState, useAppSelector } from "./store";
 import { useMemo } from "react";
+import { Message } from "../db/models";
 
 export const selectPanes = (state: RootState): Panes => state.panes.panes;
 
