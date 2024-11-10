@@ -110,7 +110,7 @@ export const openaiQueryStream = async (
 export const storeOpenAIKey = (key: string) => {
   localStorage.setItem("openai-key", key);
 };
-
+//
 export const getOpenAIKey = () => {
   const key = localStorage.getItem("openai-key");
   if (key == null) {
