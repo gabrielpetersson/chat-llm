@@ -74,7 +74,7 @@ export const openaiQueryStream = async (
       `OpenAI API error - ${response.status}: ${response.statusText}`
     );
   }
-  //
+  ////
   const reader = response.body?.getReader();
   const decoder = new TextDecoder();
   let messageStreamContent = "";
