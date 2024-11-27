@@ -1,45 +1,32 @@
 import Dexie, { Table } from "dexie";
 import logger from "dexie-logger";
-
-export type MessageRole = "assistant" | "user" | "system";
-export interface Message {
-  id: number;
-  conversationId: number;
-  ts: number;
-  role: MessageRole;
-  content: string;
-}
-export type AddMessage = Omit<Message, "id">;
-
-export interface Conversation {
-  id: number;
-  ts: number;
-  presetId?: number;
-  title?: string;
-}
-export type AddConversation = Omit<Conversation, "id">;
-
-export interface ChatConfig {
-  id: number;
-  ts: number;
-  title: string;
-  models: ("gpt-3.5-turbo" | "gpt-4")[];
-  systemPrompt: string;
-  temprature: number;
-  shortcut: string | null;
-}
-export type AddChatConfig = Omit<ChatConfig, "id">;
+import {
+  Conversation,
+  ChatConfig,
+  AddMessage,
+  AddConversation,
+  AddChatConfig,
+  Message,
+  OAIMessage,
+} from "./models";
 
 export class Database extends Dexie {
-  conversations!: Table<Conversation>;
-  messages!: Table<Message>;
-  presets!: Table<ChatConfig>;
+  conversations!: Table<Conversation, number>;
+  messages!: Table<Message, number>;
+  chatConfigs!: Table<ChatConfig, number>;
   constructor() {
     super("db");
+
+    this.version(2).stores({
+      conversations: "++id, ts, chatConfigId",
+      messages: "++id, ts, conversationId, contents",
+      chatConfigs: "++id, ts, title, systemPrompt, shortcut, providers",
+    });
+
     this.version(1).stores({
       conversations: "++id, ts, presetId",
       messages: "++id, conversationId, ts, role, content",
-      presets: "++id, ts, title, models, systemPrompt, shortcut, temprature",
+      presets: "++id, ts, title, models, systemPrompt, shortcut, temperature",
     });
   }
 }
@@ -47,12 +34,11 @@ export class Database extends Dexie {
 export const database = new Database();
 database.use(logger());
 
-const setMessageContent = async (messageId: number, content: string) => {
+const setOAIMessageContent = async (messageId: number, content: string) => {
   return await database.messages
-    .where("id")
-    .equals(messageId)
-    .modify((message) => {
-      message.content = content;
+    .where({ id: messageId, type: "open-ai" })
+    .modify((message: OAIMessage) => {
+      message.contents.content = content;
     });
 };
 
@@ -74,23 +60,17 @@ const setConversationChatConfigId = async (
     .equals(conversationId)
     .modify((conversation) => {
       if (chatConfigId === "default") {
-        delete conversation.presetId;
+        delete conversation.chatConfigId;
       } else {
-        conversation.presetId = chatConfigId;
+        conversation.chatConfigId = chatConfigId;
       }
     });
 };
 
-const addMessage = async (
-  conversationId: number,
-  content: string,
-  role: MessageRole
-) => {
+const addMessage = async (m: Omit<Message, "id" | "ts">) => {
   const message: AddMessage = {
+    ...m,
     ts: Date.now(),
-    role,
-    content: content,
-    conversationId: conversationId,
   };
   const messageId = await database.messages.add(message as Message);
   return messageId;
@@ -99,7 +79,7 @@ const addMessage = async (
 const addConversation = async (chatConfigId?: number) => {
   const conversation: AddConversation = {
     ts: Date.now(),
-    ...(chatConfigId != null && { presetId: chatConfigId }),
+    ...(chatConfigId != null && { chatConfigId: chatConfigId }),
   };
   return await database.conversations.add(conversation as Conversation);
 };
@@ -109,28 +89,35 @@ const addChatConfig = async (chatConfig: Omit<AddChatConfig, "ts">) => {
     ts: Date.now(),
     ...chatConfig,
   };
-  return await database.presets.add(addChatConfig as ChatConfig);
+  return await database.chatConfigs.add(addChatConfig as ChatConfig);
 };
 
-const putChatConfig = async (chatConfig: ChatConfig) => {
-  return await database.presets.put(chatConfig);
-};
-
-const deleteConversation = async (conversationId: number) => {
-  await database.conversations.where("id").equals(conversationId).delete();
+const deleteAllMessages = async (conversationId: number) => {
   await database.messages
     .where("conversationId")
     .equals(conversationId)
     .delete();
 };
 
+const putChatConfig = async (chatConfig: ChatConfig) => {
+  return await database.chatConfigs.put(chatConfig);
+};
+
+const deleteConversation = async (conversationId: number) => {
+  await database.conversations.where("id").equals(conversationId).delete();
+  await deleteAllMessages(conversationId);
+};
+
 export const db = {
-  addConversation,
   addMessage,
-  setMessageContent,
+  setOAIMessageContent,
+  deleteAllMessages,
+
+  addConversation,
+  deleteConversation,
   setConversationTitle,
   setConversationChatConfigId,
-  deleteConversation,
+
   addChatConfig,
   putChatConfig,
 };

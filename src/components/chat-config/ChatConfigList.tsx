@@ -9,10 +9,11 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { dbSelectChatConfigs } from "../../db/db-selectors";
 import { ChatConfigModal } from "./ChatConfigModal";
 import { useOpenChatConfigShortcut as useStartChatShortcut } from "./useShortcut";
-import { ChatConfig, db } from "../../db";
+import { db } from "../../db";
+import { ChatConfig } from "../../db/models";
 
 export const ChatConfigList: FC = () => {
-  const chatConfigs = useLiveQuery(() => dbSelectChatConfigs(), []);
+  const chatConfigs = useLiveQuery(dbSelectChatConfigs, []);
   useStartChatShortcut();
   return (
     <div className="mb-2 flex min-h-0 flex-1 flex-col bg-dark-gray">
@@ -66,6 +67,7 @@ const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig }) => {
       ? `⌥ + ${chatConfig.shortcut.toUpperCase()}`
       : null;
   })();
+
   return (
     <>
       {isOpen && chatConfig !== "default" && (
@@ -73,7 +75,12 @@ const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig }) => {
           <ChatConfigModal
             initialChatConfig={chatConfig}
             onClose={closePortal}
-            onSubmit={(p) => db.putChatConfig({ ...chatConfig, ...p })}
+            onSubmit={(modalChatConfig) => {
+              db.putChatConfig({
+                ...chatConfig,
+                ...modalChatConfig,
+              });
+            }}
           />
         </Portal>
       )}
@@ -84,7 +91,11 @@ const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig }) => {
         onClick={onClick}
       >
         <span className="material-symbols-outlined mr-2 cursor-pointer text-[20px]">
-          file_open
+          {chatConfig !== "default" &&
+          // TODO: support multiple providers
+          chatConfig.providers[0]?.type === "godmode"
+            ? "smart_toy"
+            : "file_open"}
         </span>
         <div className={"truncate text-[13px]"}>
           {chatConfig === "default" ? "Default chat" : chatConfig.title}
@@ -111,7 +122,12 @@ const AddChatConfigButton: FC = () => {
     <>
       {isOpen && (
         <Portal>
-          <ChatConfigModal onClose={closePortal} onSubmit={db.addChatConfig} />
+          <ChatConfigModal
+            onClose={closePortal}
+            onSubmit={(modalChatConfig) => {
+              db.addChatConfig(modalChatConfig);
+            }}
+          />
         </Portal>
       )}
       <div

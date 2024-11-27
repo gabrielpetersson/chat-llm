@@ -1,6 +1,5 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { FC, MouseEventHandler } from "react";
-import { Conversation } from "../../db";
 import clsx from "clsx";
 import { dbSelectConversations } from "../../db/db-selectors";
 import { useAppDispatch, useAppSelector } from "../../state/store";
@@ -11,6 +10,7 @@ import {
   startNewConversation,
 } from "../../state/conversations";
 import { getOpenAIKey } from "../../utils/openai";
+import { Conversation } from "../../db/models";
 
 interface ConversationItemProps {
   active: boolean;
