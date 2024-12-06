@@ -124,6 +124,45 @@ const deleteConversation = async (conversationId: number) => {
     .delete();
 };
 
+const forkConversationFromMessage = async (messageId: number) => {
+  const message = await database.messages.get(messageId);
+  if (!message) {
+    throw new Error("Message not found");
+  }
+
+  const originalConversation = await database.conversations
+    .where("id")
+    .equals(message.conversationId)
+    .first();
+  
+  if (!originalConversation) {
+    throw new Error("Original conversation not found");
+  }
+
+  // Create new conversation with same config
+  const newConversationId = await addConversation(originalConversation.presetId);
+
+  // Get all messages up to and including the forked message
+  const messagesToCopy = await database.messages
+    .where("conversationId")
+    .equals(message.conversationId)
+    .and((m) => m.ts <= message.ts)
+    .toArray();
+
+  // Copy messages to new conversation
+  for (const msg of messagesToCopy) {
+    await addMessage(newConversationId.valueOf() as number, msg.content, msg.role);
+  }
+
+  // Set title for the forked conversation
+  await setConversationTitle(
+    newConversationId.valueOf() as number,
+    `Fork of ${originalConversation.title || "Untitled Chat"}`
+  );
+
+  return newConversationId.valueOf() as number;
+};
+
 export const db = {
   addConversation,
   addMessage,
@@ -133,4 +172,5 @@ export const db = {
   deleteConversation,
   addChatConfig,
   putChatConfig,
+  forkConversationFromMessage,
 };
