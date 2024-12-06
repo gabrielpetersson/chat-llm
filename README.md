@@ -18,9 +18,9 @@
 ### TODO
 
 1. Expandable textarea for the message input
-2. Remove/edit chats
+2. Remove/edit chats ✅
 3. Make messages that are out of context red
-4. Fork out from a message into a new conversation in another pane
+4. Fork out from a message into a new conversation in another pane✅
 5. Make opening in new pane work for shortcuts (i.e. alt+command+SHORTCUT)
 6. Commands inside textarea (/newpane What is x?)
 7. Query GPT4, Claude, and serpapi at the same time and show them side by side (opt-in)
