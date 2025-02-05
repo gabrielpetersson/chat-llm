@@ -62,9 +62,13 @@ const ChatConfigItem: FC<ChatConfigItemProps> = ({ chatConfig }) => {
     if (chatConfig === "default") {
       return "⌥ + ⎵";
     }
-    return chatConfig.shortcut != null
-      ? `⌥ + ${chatConfig.shortcut.toUpperCase()}`
-      : null;
+    if (chatConfig.shortcut != null) {
+      const key = chatConfig.shortcut.toUpperCase();
+      const isMac = navigator.platform.includes('Mac');
+      const newPaneModifier = isMac ? '⌘' : 'Ctrl';
+      return `⌥ + ${key} (⌥ + ${newPaneModifier} + ${key} for new pane)`;
+    }
+    return null;
   })();
   return (
     <>

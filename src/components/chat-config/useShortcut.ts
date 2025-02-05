@@ -45,16 +45,26 @@ export const useOpenChatConfigShortcut = () => {
     };
 
     const onKeydown = (e: KeyboardEvent) => {
+      // Only proceed if Alt/Option key is pressed
       if (!e.altKey) {
         return;
       }
+
       const chatConfigId = getChatConfigId(e.code);
       if (chatConfigId == null) {
         return;
       }
+
+      // Prevent default browser behavior
+      e.preventDefault();
+      
+      // For Mac: use alt+command, for other platforms use alt+ctrl
+      const openInNewPane = navigator.platform.includes('Mac') ? e.metaKey : e.ctrlKey;
+      
+      // Start new conversation
       dispatch(
         startNewConversation({
-          openInNewPane: e.ctrlKey,
+          openInNewPane: openInNewPane,
           chatConfig: chatConfigId === "default" ? undefined : chatConfigId,
         })
       );

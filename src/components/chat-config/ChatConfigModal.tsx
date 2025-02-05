@@ -105,7 +105,9 @@ const ChatConfigDumb: FC<ChatConfigDumbProps> = ({ onClose }) => {
         <Section>
           <Title>
             {`Shortcut: ${
-              shortcut != null ? `⌥ + ${shortcut.toUpperCase()}` : "None"
+              shortcut != null 
+                ? `⌥ + ${shortcut.toUpperCase()} (⌥ + ${navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'} + ${shortcut.toUpperCase()} for new pane)` 
+                : "None"
             }`}
           </Title>
           <div className="flex h-[40px] w-full select-none rounded border border-dark-gray">
