@@ -17,7 +17,7 @@
 
 ### TODO
 
-1. Expandable textarea for the message input
+1. Expandable textarea for the message input ✅
 2. Remove/edit chats ✅
 3. Make messages that are out of context red
 4. Fork out from a message into a new conversation in another pane✅

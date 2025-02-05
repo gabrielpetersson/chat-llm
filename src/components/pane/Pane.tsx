@@ -60,18 +60,32 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
     }
 
     const maxSize = window.innerHeight / 2.5;
-    const isMaxSize = textArea.scrollHeight > maxSize;
-
-    // NOTE(gab): first setting height to auto will force layout, and get the actual scrollHeight.
-    // if for example removing lines in the textarea, height: auto will shrink the text area
-    // before scrollheight is calculated
+    const minHeight = 55; // Minimum height of textarea
+    const lineHeight = parseInt(window.getComputedStyle(textArea).lineHeight) || 20;
+    
+    // Reset height to auto to get proper scrollHeight
     textArea.style.height = "auto";
+    
+    // Calculate content height
+    const contentHeight = Math.max(minHeight, textArea.scrollHeight);
+    const isMaxSize = contentHeight > maxSize;
+
     if (isMaxSize) {
-      textArea.style.overflowY = "auto";
       textArea.style.height = `${maxSize}px`;
+      textArea.style.overflowY = "auto";
+      // Add a subtle transition only when expanding to max size
+      textArea.style.transition = "height 0.1s ease-out";
     } else {
+      // Round to nearest line height to prevent partial line display
+      const roundedHeight = Math.ceil(contentHeight / lineHeight) * lineHeight;
+      textArea.style.height = `${roundedHeight}px`;
       textArea.style.overflowY = "hidden";
-      textArea.style.height = `${textArea.scrollHeight}px`;
+      textArea.style.transition = "none"; // No transition when auto-expanding
+    }
+
+    // Ensure cursor remains visible when expanding
+    if (document.activeElement === textArea) {
+      textArea.scrollTop = textArea.scrollHeight;
     }
   }, [messageDraft]);
 
@@ -159,7 +173,12 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
             onChange={onInput}
             onKeyDown={onKeydown}
             placeholder="Tell me something..."
-            className="w-full max-w-[500px] resize-none overflow-hidden rounded border border-dark-gray p-2 shadow-[0_0_10px_rgba(0,0,0,0.10)] outline-none"
+            className="w-full max-w-[700px] resize-none overflow-hidden rounded-lg border
+              border-gray-300 p-3 text-base leading-6 placeholder:text-gray-500
+              focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
+              hover:border-gray-400 transition-colors duration-200
+              shadow-[0_0_10px_rgba(0,0,0,0.10)]
+              scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent"
           />
         </div>
       </div>
