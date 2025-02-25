@@ -134,7 +134,7 @@ export const AddConversationItem: FC = () => {
 };
 
 export const ConversationList: FC = () => {
-  const conversationId = useAppSelector(selectActiveConversationId);
+  const _conversationId = useAppSelector(selectActiveConversationId);
   const conversations = useLiveQuery(() => dbSelectConversations(), []);
 
   return (
