@@ -17,7 +17,7 @@ import {
   useMessages,
 } from "../../state/selectors";
 import { useAppDispatch, useAppSelector } from "../../state/store";
-import { sendMessage } from "../../state/conversations";
+import { openConversation, sendMessage } from "../../state/conversations";
 import { Pane, paneSlice } from "../../state/panes";
 import { Uuid } from "../../utils/uuid";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -90,19 +90,45 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
   }, [messageDraft]);
 
   const onKeydown: KeyboardEventHandler<HTMLTextAreaElement> = async (e) => {
+    // Check if the message starts with a command
     if (
-      e.key !== "Enter" ||
-      messageDraft === "" ||
-      e.shiftKey ||
-      e.ctrlKey ||
-      e.metaKey ||
-      e.altKey
+      e.key === "Enter" &&
+      messageDraft !== "" &&
+      !e.shiftKey &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.altKey
     ) {
-      return;
+      e.preventDefault();
+      
+      // Handle commands
+      if (messageDraft.startsWith('/')) {
+        const parts = messageDraft.split(' ');
+        const command = parts[0].toLowerCase();
+        const content = parts.slice(1).join(' ');
+        
+        if (command === '/newpane' && content.trim() !== '') {
+          setMessageDraft("");
+          
+          // Create a new conversation and open it in a new pane
+          const conversationId = await db.addConversation(conversation?.presetId);
+          
+          // Open the conversation in a new pane
+          dispatch(openConversation(conversationId.valueOf() as number, { openInNewPane: true }));
+          
+          // Wait a bit for the new pane to be created
+          setTimeout(() => {
+            dispatch(sendMessage(conversationId.valueOf() as number, content));
+          }, 100);
+          
+          return;
+        }
+      }
+      
+      // Normal message handling
+      setMessageDraft("");
+      await dispatch(sendMessage(pane.conversationId, messageDraft));
     }
-    e.preventDefault();
-    setMessageDraft("");
-    await dispatch(sendMessage(pane.conversationId, messageDraft));
   };
 
   const onInput: ChangeEventHandler<HTMLTextAreaElement> = async (e) => {
@@ -172,7 +198,7 @@ const Pane: FC<PaneProps> = ({ pane, paneId }) => {
             autoFocus
             onChange={onInput}
             onKeyDown={onKeydown}
-            placeholder="Tell me something..."
+            placeholder="Message or /newpane to create a new pane..."
             className="w-full max-w-[700px] resize-none overflow-hidden rounded-lg border
               border-gray-300 p-3 text-base leading-6 placeholder:text-gray-500
               focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
